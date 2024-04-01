@@ -1,195 +1,114 @@
-#include "globals.hh"
+// copy froam extended/radioactivedecay/rdecay02
+
 #include "PhysicsList.hh"
 
-#include "G4ProcessManager.hh"
-#include "G4ParticleTypes.hh"
-#include "G4StepLimiterPhysics.hh"
-#include "G4StepLimiter.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4UnitsTable.hh"
 
+#include "G4EmStandardPhysics.hh"
+#include "G4EmExtraPhysics.hh"
+#include "G4EmParameters.hh"
+#include "G4DecayPhysics.hh"
+#include "G4NuclideTable.hh"
+#include "BiasedRDPhysics.hh"
+#include "G4HadronElasticPhysics.hh"
+#include "G4HadronPhysicsFTFP_BERT.hh"
+#include "G4HadronInelasticQBBC.hh"
+#include "G4HadronPhysicsINCLXX.hh"
+#include "G4IonElasticPhysics.hh"
+#include "G4IonPhysics.hh"
+#include "G4IonINCLXXPhysics.hh"
+
+// particles
+
+#include "G4BosonConstructor.hh"
+#include "G4LeptonConstructor.hh"
+#include "G4MesonConstructor.hh"
+#include "G4BosonConstructor.hh"
+#include "G4BaryonConstructor.hh"
 #include "G4IonConstructor.hh"
-#include "G4Radioactivation.hh"
+#include "G4ShortLivedConstructor.hh"
+
 
 PhysicsList::PhysicsList()
+:G4VModularPhysicsList()
 {
-	defaultCutValue = 0.0001*mm;
-	SetVerboseLevel(1);
+  G4int verb = 1;
+  SetVerboseLevel(verb);
 
-	RegisterPhysics(new G4StepLimiterPhysics());
+  // Mandatory for G4NuclideTable
+  // Half-life threshold must be set small or many short-lived isomers 
+  // will not be assigned life times (default to 0) 
+  G4NuclideTable::GetInstance()->SetThresholdOfHalfLife(0.1*picosecond);
+  G4NuclideTable::GetInstance()->SetLevelTolerance(1.0*eV);
+          
+  // EM physics
+  RegisterPhysics(new G4EmStandardPhysics());
+  G4EmParameters* param = G4EmParameters::Instance();
+  param->SetAugerCascade(true);
+  param->SetStepFunction(1., 1*CLHEP::mm);
+  param->SetStepFunctionMuHad(1., 1*CLHEP::mm);
+
+  // Decay
+  RegisterPhysics(new G4DecayPhysics());
+
+  // Radioactive decay
+  RegisterPhysics(new BiasedRDPhysics());
+            
+  // Hadron Elastic scattering
+  RegisterPhysics( new G4HadronElasticPhysics(verb) );
+  
+  // Hadron Inelastic physics
+  RegisterPhysics( new G4HadronPhysicsFTFP_BERT(verb));
+  ////RegisterPhysics( new G4HadronInelasticQBBC(verb));        
+  ////RegisterPhysics( new G4HadronPhysicsINCLXX(verb));
+  
+  // Ion Elastic scattering
+  RegisterPhysics( new G4IonElasticPhysics(verb));
+      
+  // Ion Inelastic physics
+  RegisterPhysics( new G4IonPhysics(verb));
+  ////RegisterPhysics( new G4IonINCLXXPhysics(verb));
+    
+  // Gamma-Nuclear Physics
+  G4EmExtraPhysics* gnuc = new G4EmExtraPhysics(verb);
+  gnuc->ElectroNuclear(false);
+  gnuc->MuonNuclear(false);
+  RegisterPhysics(gnuc);
 }
 
-PhysicsList::~PhysicsList() {}
+//
+PhysicsList::~PhysicsList()
+{ }
 
-
+//
 void PhysicsList::ConstructParticle()
 {
-	ConstructBosons();
-	ConstructLeptons();
-	ConstructMesons();
-	ConstructBaryons();
+  G4BosonConstructor  pBosonConstructor;
+  pBosonConstructor.ConstructParticle();
 
-  G4IonConstructor iConstructor;
-  iConstructor.ConstructParticle();
+  G4LeptonConstructor pLeptonConstructor;
+  pLeptonConstructor.ConstructParticle();
+
+  G4MesonConstructor pMesonConstructor;
+  pMesonConstructor.ConstructParticle();
+
+  G4BaryonConstructor pBaryonConstructor;
+  pBaryonConstructor.ConstructParticle();
+
+  G4IonConstructor pIonConstructor;
+  pIonConstructor.ConstructParticle();
+
+  G4ShortLivedConstructor pShortLivedConstructor;
+  pShortLivedConstructor.ConstructParticle();  
 }
 
-void PhysicsList::ConstructBosons()
-{
-	G4Geantino::GeantinoDefinition();
-	G4ChargedGeantino::ChargedGeantinoDefinition();
-	G4Gamma::GammaDefinition();
-}
-
-void PhysicsList::ConstructLeptons()
-{
-	G4Electron::ElectronDefinition();
-	G4Positron::PositronDefinition();
-
-	G4MuonPlus::MuonPlusDefinition();
-	G4MuonMinus::MuonMinusDefinition();
-
-	G4NeutrinoE::NeutrinoEDefinition();
-	G4AntiNeutrinoE::AntiNeutrinoEDefinition();
-
-	G4NeutrinoMu::NeutrinoMuDefinition();
-	G4AntiNeutrinoMu::AntiNeutrinoMuDefinition();
-}
-
-void PhysicsList::ConstructMesons()
-{
-	G4PionPlus::PionPlusDefinition();
-	G4PionMinus::PionMinusDefinition();
-	G4PionZero::PionZeroDefinition();
-	G4Eta::EtaDefinition();
-	G4EtaPrime::EtaPrimeDefinition();
-	G4KaonPlus::KaonPlusDefinition();
-	G4KaonMinus::KaonMinusDefinition();
-	G4KaonZero::KaonZeroDefinition();
-	G4AntiKaonZero::AntiKaonZeroDefinition();
-	G4KaonZeroLong::KaonZeroLongDefinition();
-	G4KaonZeroShort::KaonZeroShortDefinition();	
-}
-
-void PhysicsList::ConstructBaryons()
-{
-	G4Proton::ProtonDefinition();
-	G4AntiProton::AntiProtonDefinition();
-
-	G4Neutron::NeutronDefinition();
-	G4AntiNeutron::AntiNeutronDefinition();
-}
-
-void PhysicsList::ConstructProcess()
-{
-	AddTransportation();
-	ConstructEM();
-	ConstructGeneral();
-}
-
-#include "G4ComptonScattering.hh"
-#include "G4PhotoElectricEffect.hh"
-#include "G4GammaConversion.hh"
-
-#include "G4eMultipleScattering.hh"
-#include "G4eIonisation.hh"
-#include "G4eBremsstrahlung.hh"
-#include "G4eplusAnnihilation.hh"
-
-#include "G4MuMultipleScattering.hh"
-#include "G4MuIonisation.hh"
-#include "G4MuBremsstrahlung.hh"
-#include "G4MuPairProduction.hh"
-
-#include "G4hMultipleScattering.hh"
-#include "G4hIonisation.hh"
-
-void PhysicsList::ConstructEM()
-{
-	GetParticleIterator()->reset();
-	while ((*GetParticleIterator())())
-	{
-		G4ParticleDefinition* particle = GetParticleIterator()->value();
-		G4ProcessManager* pmanager = particle->GetProcessManager();
-		G4String particleName = particle->GetParticleName();
-		if (particleName == "gamma")
-		{
-			pmanager->AddDiscreteProcess(new G4PhotoElectricEffect);
-			pmanager->AddDiscreteProcess(new G4ComptonScattering);
-			pmanager->AddDiscreteProcess(new G4GammaConversion);
-			pmanager->AddDiscreteProcess(new G4StepLimiter);
-		}
-		else if (particleName == "e-")
-		{
-			pmanager->AddProcess(new G4eMultipleScattering, -1, 1, 1);
-			pmanager->AddProcess(new G4eIonisation,         -1, 2, 2);
-			pmanager->AddProcess(new G4eBremsstrahlung,     -1, 3, 3);
-			pmanager->AddDiscreteProcess(new G4StepLimiter);
-		}
-		else if (particleName == "e+")
-		{
-			pmanager->AddProcess(new G4eMultipleScattering, -1, 1, 1);
-			pmanager->AddProcess(new G4eIonisation,         -1, 2, 2);
-			pmanager->AddProcess(new G4eBremsstrahlung,     -1, 3, 3);
-			pmanager->AddProcess(new G4eplusAnnihilation,    0,-1, 4);
-			pmanager->AddDiscreteProcess(new G4StepLimiter);
-		}
-		else if (particleName == "mu+" || particleName == "mu-")
-		{
-			pmanager->AddProcess(new G4MuMultipleScattering, -1, 1, 1);
-			pmanager->AddProcess(new G4MuIonisation,         -1, 2, 2);
-			pmanager->AddProcess(new G4MuBremsstrahlung,     -1, 3, 3);
-			pmanager->AddProcess(new G4MuPairProduction,     -1, 4, 4);
-			pmanager->AddDiscreteProcess(new G4StepLimiter);
-		}
-		else if (particle->GetPDGCharge() != 0)
-		{
-			pmanager->AddProcess(new G4hMultipleScattering, -1, 1, 1);
-			pmanager->AddProcess(new G4hIonisation,         -1, 2, 2);
-			// pmanager->AddDiscreteProcess(new G4StepLimiter);
-		}
-	}
-}
-
-#include "G4Decay.hh"
-
-void PhysicsList::ConstructGeneral()
-{
-  //
-	G4Decay* theDecayProcess = new G4Decay();
-	GetParticleIterator()->reset();
-	while ((*GetParticleIterator())())
-	{
-		G4ParticleDefinition* particle = GetParticleIterator()->value();
-		G4ProcessManager* pmanager = particle->GetProcessManager();
-		if (theDecayProcess->IsApplicable(*particle))
-		{
-			pmanager->AddProcess(theDecayProcess);
-			pmanager->SetProcessOrdering(theDecayProcess, idxPostStep);
-			pmanager->SetProcessOrdering(theDecayProcess, idxAtRest);
-		}
-	}
-
-  //
-  G4Radioactivation* radioactiveDecay = new G4Radioactivation();
-
-  G4bool ARMflag = false;
-  radioactiveDecay->SetARM(ARMflag);        //Atomic Rearangement
-
-  // register radioactiveDecay
-  //
-  G4PhysicsListHelper* ph = G4PhysicsListHelper::GetPhysicsListHelper();
-  ph->RegisterProcess(radioactiveDecay, G4GenericIon::GenericIon());
-}
-
+//
 void PhysicsList::SetCuts()
 {
-	// Set the range cuts for secondary production 
-	// low energy limit on particle production
-	if (verboseLevel > 0)
-	{
-		G4cout << "\nPhysicsList::SetCuts:";
-		G4cout << "\n> CutLength : " << G4BestUnit(defaultCutValue, "Length") << "\n\n";
-	}
-
-	SetCutValue(defaultCutValue, "gamma");
-	SetCutValue(defaultCutValue, "e-");
-	SetCutValue(defaultCutValue, "e+");
+  SetCutValue(0*mm, "proton");
+  SetCutValue(10*km, "e-");
+  SetCutValue(10*km, "e+");
+  SetCutValue(10*km, "gamma");      
 }
+

@@ -34,7 +34,8 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event *evt)
 {
   //
-  GenerateGammaPrimaries(evt);
+  // GenerateGammaPrimaries(evt);
+  GenerateIonPrimaries(evt);
 }
 
 //
@@ -73,6 +74,7 @@ void PrimaryGeneratorAction::GenerateIonPrimaries(G4Event *evt)
   particle_gun->SetParticleDefinition(ion);
   particle_gun->SetParticleCharge(ion_charge);
   particle_gun->SetParticlePosition(gun_pos);
+  particle_gun->SetParticleEnergy(0. *MeV);
   particle_gun->SetParticleMomentumDirection(gun_dir);
 
   particle_gun->GeneratePrimaryVertex(evt);

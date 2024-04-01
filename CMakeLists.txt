@@ -42,6 +42,7 @@ set(HFRS_SCRIPTS
   macros/vis.mac
   macros/init_vis.mac
   macros/gamma.mac
+  macros/Co60.mac
   )
 
 foreach(_script ${HFRS_SCRIPTS})

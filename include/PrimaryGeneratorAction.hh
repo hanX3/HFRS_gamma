@@ -42,7 +42,7 @@ private:
   G4double gamma_energy;
 
 private:
-  G4ParticleGun *particle_gun = nullptr; // G4 particle gun
+  G4ParticleGun *particle_gun = nullptr;
 };
 
 

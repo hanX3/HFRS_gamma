@@ -1,27 +1,21 @@
-#ifndef PHYSICSLIST_HH
-#define PHYSICSLIST_HH
+// copy froam extended/radioactivedecay/rdecay02
+
+#ifndef PhysicsList_h
+#define PhysicsList_h 1
 
 #include "G4VModularPhysicsList.hh"
-#include "G4SystemOfUnits.hh"
+#include "globals.hh"
 
-class PhysicsList : public G4VModularPhysicsList
+//
+class PhysicsList: public G4VModularPhysicsList
 {
 public:
-	PhysicsList();
-	~PhysicsList();
+  PhysicsList();
+ ~PhysicsList();
 
-protected:
-	void ConstructParticle();
-	void ConstructProcess();
-	void SetCuts();
-
-	void ConstructBosons();
-	void ConstructLeptons();
-	void ConstructMesons();
-	void ConstructBaryons();
-
-	void ConstructGeneral();
-	void ConstructEM();
+public:
+  virtual void ConstructParticle();
+  virtual void SetCuts();
 };
 
 #endif

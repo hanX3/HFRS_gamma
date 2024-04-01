@@ -69,7 +69,7 @@ G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
 {
   // define world
   G4Box *world_solid = new G4Box("World", 0.5*WorldSizeX, 0.5*WorldSizeY, 0.5*WorldSizeZ);
-  world_log = new G4LogicalVolume(world_solid, mat_vaccum, "World");
+  world_log = new G4LogicalVolume(world_solid, mat_air, "World");
   G4VPhysicalVolume *world_phys = new G4PVPlacement(0, G4ThreeVector(0.,0.,0.), world_log, "World", 0, false, 0, check_overlaps);
 
   // CsI Array
