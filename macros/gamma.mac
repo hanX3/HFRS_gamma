@@ -1,0 +1,6 @@
+/run/initialize
+
+#/tracking/verbose 0
+#/hits/verbose 2
+
+/run/beamOn 10000
