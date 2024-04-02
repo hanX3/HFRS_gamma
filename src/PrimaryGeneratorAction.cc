@@ -34,8 +34,8 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event *evt)
 {
   //
-  // GenerateGammaPrimaries(evt);
-  GenerateIonPrimaries(evt);
+  GenerateGammaPrimaries(evt);
+  // GenerateIonPrimaries(evt);
 }
 
 //

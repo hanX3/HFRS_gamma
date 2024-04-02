@@ -21,13 +21,6 @@
 
 #include "G4SystemOfUnits.hh"
 
-#include "G4UniformElectricField.hh"
-#include "G4EqMagElectricField.hh"
-#include "G4ClassicalRK4.hh"
-#include "G4MagIntegratorDriver.hh"
-#include "G4ChordFinder.hh"
-#include "G4FieldManager.hh"
-
 //
 DetectorConstruction::DetectorConstruction()
 {
@@ -72,14 +65,28 @@ G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
   world_log = new G4LogicalVolume(world_solid, mat_air, "World");
   G4VPhysicalVolume *world_phys = new G4PVPlacement(0, G4ThreeVector(0.,0.,0.), world_log, "World", 0, false, 0, check_overlaps);
 
+  G4SDManager *sd_manager = G4SDManager::GetSDMpointer();
+
   // CsI Array
   csi_array = new CsIArray(world_log);
   csi_array->Construct();
-
-  G4SDManager *sd_manager = G4SDManager::GetSDMpointer();
   CsISD *csi_sd = new CsISD("CsISD", "CsIHitCollection");
   sd_manager->AddNewDetector(csi_sd);
   csi_array->MakeSensitive(csi_sd);
+
+  // Labr3 Array
+  labr3_array = new LaBr3Array(world_log);
+  labr3_array->Construct();
+  LaBr3SD *labr3_sd = new LaBr3SD("LaBr3SD", "LaBr3HitCollection");
+  sd_manager->AddNewDetector(labr3_sd);
+  labr3_array->MakeSensitive(labr3_sd);
+
+  // gagg Array
+  gagg_array = new GAGGArray(world_log);
+  gagg_array->Construct();
+  GAGGSD *gagg_sd = new GAGGSD("GAGGSD", "GAGGHitCollection");
+  sd_manager->AddNewDetector(gagg_sd);
+  gagg_array->MakeSensitive(gagg_sd);
 
   //
   G4double max_step = 0.4 *um;
