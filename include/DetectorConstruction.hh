@@ -4,6 +4,10 @@
 #include "Constants.hh"
 #include "CsISD.hh"
 #include "CsIArray.hh"
+#include "LaBr3SD.hh"
+#include "LaBr3Array.hh"
+#include "GAGGSD.hh"
+#include "GAGGArray.hh"
 
 #include "G4VUserDetectorConstruction.hh"
 #include "tls.hh"
@@ -36,6 +40,8 @@ private:
 
 private:
   CsIArray *csi_array;
+  LaBr3Array *labr3_array;
+  GAGGArray *gagg_array;
 
 private:
   //

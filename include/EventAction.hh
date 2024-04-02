@@ -21,14 +21,20 @@ public:
   void  EndOfEventAction(const G4Event *) override;
 
 private:
-  void GausCsIEnergy();
-  bool IfCsIThresholdTrigger();
+  void GausEnergy(G4double res);
+  bool IfThresholdTrigger(G4double threshold);
 
 private:
-  G4int hc_id;
+  G4int hc_id_csi;
+  G4int hc_id_labr3;
+  G4int hc_id_gagg;
 
-  G4double csi_threshold;
-  G4double csi_energy_resolution;
+  G4double threshold_csi;
+  G4double energy_resolution_csi;
+  G4double threshold_labr3;
+  G4double energy_resolution_labr3;
+  G4double threshold_gagg;
+  G4double energy_resolution_gagg;
 
 private:
   EventData event_data;

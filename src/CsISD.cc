@@ -54,6 +54,7 @@ G4bool CsISD::ProcessHits(G4Step *step, G4TouchableHistory *history)
 
   /*
   G4cout << "-----> physical name " << det_name << G4endl;
+  G4cout << "-----> hc_id " << hc_id << G4endl;
   G4cout << "-----> in CsISD ProcessHits function copy_no " << copy_no << G4endl;
   G4cout << "-----> in CsISD ProcessHits function ring_id " << ring_id << G4endl;
   G4cout << "-----> in CsISD ProcessHits function sector_id " << sector_id << G4endl;
