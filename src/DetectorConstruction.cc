@@ -24,9 +24,9 @@
 //
 DetectorConstruction::DetectorConstruction()
 {
-  mat_air = nullptr;
-  mat_vaccum = nullptr;
-  mat_al = nullptr;
+  air_mat = nullptr;
+  vaccum_mat = nullptr;
+  al_mat = nullptr;
 
   check_overlaps = true;
 }
@@ -47,11 +47,11 @@ G4VPhysicalVolume *DetectorConstruction::Construct()
 //
 void DetectorConstruction::DefineMaterials()
 {
-  G4NistManager* nist_manager = G4NistManager::Instance();
+  G4NistManager *nist_manager = G4NistManager::Instance();
 
-  mat_air = nist_manager->FindOrBuildMaterial("G4_AIR");
-  mat_vaccum = nist_manager->FindOrBuildMaterial("G4_Galactic");
-  mat_al = nist_manager->FindOrBuildMaterial("G4_Al");
+  air_mat = nist_manager->FindOrBuildMaterial("G4_AIR");
+  vaccum_mat = nist_manager->FindOrBuildMaterial("G4_Galactic");
+  al_mat = nist_manager->FindOrBuildMaterial("G4_Al");
 
   // Print materials
   G4cout << *(G4Material::GetMaterialTable()) << G4endl;
@@ -62,7 +62,7 @@ G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
 {
   // define world
   G4Box *world_solid = new G4Box("World", 0.5*WorldSizeX, 0.5*WorldSizeY, 0.5*WorldSizeZ);
-  world_log = new G4LogicalVolume(world_solid, mat_air, "World");
+  world_log = new G4LogicalVolume(world_solid, air_mat, "World");
   G4VPhysicalVolume *world_phys = new G4PVPlacement(0, G4ThreeVector(0.,0.,0.), world_log, "World", 0, false, 0, check_overlaps);
 
   G4SDManager *sd_manager = G4SDManager::GetSDMpointer();
@@ -81,12 +81,19 @@ G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
   sd_manager->AddNewDetector(labr3_sd);
   labr3_array->MakeSensitive(labr3_sd);
 
-  // gagg Array
+  // GAGG Array
   gagg_array = new GAGGArray(world_log);
   gagg_array->Construct();
   GAGGSD *gagg_sd = new GAGGSD("GAGGSD", "GAGGHitCollection");
   sd_manager->AddNewDetector(gagg_sd);
   gagg_array->MakeSensitive(gagg_sd);
+
+  // NaI Array
+  nai_array = new NaIArray(world_log);
+  nai_array->Construct();
+  NaISD *nai_sd = new NaISD("NaISD", "NaIHitCollection");
+  sd_manager->AddNewDetector(nai_sd);
+  nai_array->MakeSensitive(nai_sd);
 
   //
   G4double max_step = 0.4 *um;

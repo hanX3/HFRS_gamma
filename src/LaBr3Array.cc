@@ -8,13 +8,11 @@
 LaBr3Array::LaBr3Array(G4LogicalVolume *log)
 : exp_hall_log(log)
 {
-  labr3_rings = LaBr3RingNumber;
   labr3_numbers = 0;
 
-  for(int i=0;i<labr3_rings;i++){
-   v_labr3_name.push_back(TString::Format("LaBr3_%02d",i+1).Data());
-   map_name_to_d_phi[v_labr3_name[i]] = 360/LaBr3Detector::map_name_to_sectors[v_labr3_name[i]];
-   labr3_numbers += LaBr3Detector::map_name_to_sectors[v_labr3_name[i]];
+  for(auto it=LaBr3Detector::map_name_to_sectors.begin();it!=LaBr3Detector::map_name_to_sectors.end();it++){
+    map_name_to_d_phi[it->first] = 360./it->second;
+    labr3_numbers += it->second;
   }
 
   for(auto it=map_name_to_d_phi.begin();it!=map_name_to_d_phi.end();it++){
@@ -52,11 +50,11 @@ void LaBr3Array::Construct()
   std::map<G4int, G4int> map_i2sector;
   std::map<G4int, G4String> map_i2name;
   int ii = 0;
-  for(int i=0;i<labr3_rings;i++){
-    for(int j=0;j<LaBr3Detector::map_name_to_sectors[v_labr3_name[i]];j++){
-      map_i2ring[ii] = LaBr3Detector::map_name_to_ring_id[v_labr3_name[i]];
+  for(auto it=LaBr3Detector::map_name_to_ring_id.begin();it!=LaBr3Detector::map_name_to_ring_id.end();it++){
+    for(int j=0;j<LaBr3Detector::map_name_to_sectors[it->first];j++){
+      map_i2ring[ii] = it->second;
       map_i2sector[ii] = j;
-      map_i2name[ii] = v_labr3_name[i];
+      map_i2name[ii] = it->first;
       ii++;
     }
   }
@@ -91,34 +89,6 @@ void LaBr3Array::MakeSensitive(LaBr3SD *labr3_sd)
   for(;it!=v_labr3_detector.end();it++){
      (*it)->GetLog()->SetSensitiveDetector(labr3_sd);
   }
-}
-
-//
-G4RotationMatrix *LaBr3Array::CalculateRotation(G4String name, G4int sector_id)
-{
-  G4RotationMatrix *rot_matrix = new G4RotationMatrix();
-
-  G4double rot_x_angle = LaBr3Detector::map_placement_par[name][1] *deg;
-  G4double rot_y_angle = 0. *deg;
-  G4double rot_z_angle = map_name_to_d_phi[name]*sector_id *deg;
-  rot_matrix->rotateZ(rot_z_angle);
-  rot_matrix->rotateX(rot_x_angle);
-
-  rot_matrix->print(G4cout);
-
-  return rot_matrix;
-}
-
-//
-G4ThreeVector LaBr3Array::CalculatePosition(G4String name, G4int sector_id)
-{
-  G4double x = 0. *mm;
-  G4double y = 0. *mm;
-  G4double z = LaBr3Detector::map_placement_par[name][0] *mm;
-  G4ThreeVector pos = (*CalculateRotation(name, sector_id))*G4ThreeVector(x, y, z);
-  G4cout << "pos x " << pos.x() << "pos y " << pos.y() << "pos z " << pos.z() << G4endl;
-
-  return pos;
 }
 
 //

@@ -98,6 +98,50 @@ std::map<G4String, G4int> CsIDetector::map_name_to_ring_id = {
 };
 
 //
+std::map<G4int, G4String> CsIDetector::map_ring_id_to_name = {
+  {9, "EndCup09"},
+  {10, "EndCup10"},
+  {11, "EndCup11"},
+  {12, "EndCup12"},
+  {13, "EndCup13"},
+  
+  {14, "EndCup14"},
+  {15, "EndCup15"},
+  {16, "EndCup16"},
+  {17, "EndCup17"},
+  {18, "EndCup18"},
+  
+  {19, "EndCup19"},
+  {20, "EndCup20"},
+  {21, "EndCup21"},
+  {22, "EndCup22"},
+  {23, "EndCup23"},
+  {24, "EndCup24"}
+};
+
+//
+std::map<G4String, G4int> CsIDetector::map_name_to_sectors = {
+  {"EndCup09", 64},
+  {"EndCup10", 64},
+  {"EndCup11", 64},
+  {"EndCup12", 64},
+  {"EndCup13", 64},
+  
+  {"EndCup14", 64},
+  {"EndCup15", 64},
+  {"EndCup16", 64},
+  {"EndCup17", 64},
+  {"EndCup18", 64},
+  
+  {"EndCup19", 64},
+  {"EndCup20", 64},
+  {"EndCup21", 64},
+  {"EndCup22", 64},
+  {"EndCup23", 64},
+  {"EndCup24", 64}
+};
+
+//
 std::map<G4String, std::array<G4double, 11>> CsIDetector::map_trap_par = {
   {"EndCup09", {170.0/2, 1.00594, 39.55115, 10.0/2, 13.20/2, 12.14/2, 3.03384, 13.86/2, 18.01/2, 16.53/2, 3.05618}},
   {"EndCup10", {170.0/2, 1.05403, 37.50169, 10.0/2, 14.30/2, 13.24/2, 3.03384, 13.86/2, 19.46/2, 18.0/2, 3.01496}},

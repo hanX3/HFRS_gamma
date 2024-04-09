@@ -35,11 +35,8 @@ private:
 
 private:
   G4int csi_numbers;
-  G4int csi_rings;
-  G4int csi_sectors;
 
-  std::vector<G4String> v_csi_name;
-  G4double d_phi;
+  std::map<G4String, G4double> map_name_to_d_phi;
 
   std::vector<CsIDetector*> v_csi_detector;
 };

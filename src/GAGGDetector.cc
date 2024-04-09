@@ -62,7 +62,14 @@ G4VPhysicalVolume *GAGGDetector::PlaceGAGGDetector(const G4Transform3D &transfro
 std::map<G4String, G4int> GAGGDetector::map_name_to_ring_id = {
   {"GAGG_03", 3},
   {"GAGG_04", 4},
-  {"GAGG_05", 5},
+  {"GAGG_05", 5}
+};
+
+//
+std::map<G4int, G4String> GAGGDetector::map_ring_id_to_name = {
+  {3, "GAGG_03"},
+  {4, "GAGG_04"},
+  {5, "GAGG_05"}
 };
 
 //
@@ -84,9 +91,9 @@ std::map<G4String, std::array<G4double, 3>> GAGGDetector::map_gagg_par = {
 // 0: distance
 // 1: theta
 std::map<G4String, std::array<G4double, 2>> GAGGDetector::map_placement_par = {
-  {"GAGG_03", {600., 13.}},
-  {"GAGG_04", {600., 13.}},
-  {"GAGG_05", {600.+(120-35)/2., 13.}}
+  {"GAGG_03", {540., 14.2}},
+  {"GAGG_04", {540., 14.2}},
+  {"GAGG_05", {540.+(120-35)/2., 14.2}}
 };
 
 //

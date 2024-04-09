@@ -8,12 +8,12 @@
 CsIArray::CsIArray(G4LogicalVolume *log)
 : exp_hall_log(log)
 {
-  csi_rings = CsIRingNumber;
-  csi_sectors = CsISectorNumber;
-  csi_numbers = csi_rings*csi_sectors;
+  csi_numbers = 0;
 
-  for(int i=0;i<csi_rings;i++) v_csi_name.push_back(TString::Format("EndCup%02d",i+9).Data());
-  d_phi = 5.625 *deg;
+  for(auto it=CsIDetector::map_name_to_sectors.begin();it!=CsIDetector::map_name_to_sectors.end();it++){
+    map_name_to_d_phi[it->first] = 360./it->second;
+    csi_numbers += it->second;
+  }
   //
   PrintDetectorDimensionInfo();
 }
@@ -32,18 +32,42 @@ void CsIArray::Construct()
   for(;it!=v_csi_detector.end();it++) delete *it;
   v_csi_detector.clear();
 
+  std::map<G4int, G4int> map_i2ring;
+  std::map<G4int, G4int> map_i2sector;
+  std::map<G4int, G4String> map_i2name;
+  int ii = 0;
+  for(auto it=CsIDetector::map_name_to_ring_id.begin();it!=CsIDetector::map_name_to_ring_id.end();it++){
+    for(int j=0;j<CsIDetector::map_name_to_sectors[it->first];j++){
+      map_i2ring[ii] = it->second;
+      map_i2sector[ii] = j;
+      map_i2name[ii] = it->first;
+      ii++;
+    }
+  }
+
+  for(auto it=map_i2ring.begin();it!=map_i2ring.end();it++){
+    G4cout << "i " << it->first << " ring " << it->second << G4endl;
+  }
+  for(auto it=map_i2sector.begin();it!=map_i2sector.end();it++){
+    G4cout << "i " << it->first << " sector " << it->second << G4endl;
+  }
+  for(auto it=map_i2name.begin();it!=map_i2name.end();it++){
+    G4cout << "i " << it->first << " name " << it->second << G4endl;
+  }
+
   for(int i=0;i<csi_numbers;i++){
     v_csi_detector.push_back(new CsIDetector(exp_hall_log));
-    v_csi_detector[i]->SetName(v_csi_name[i/csi_sectors]);
-    v_csi_detector[i]->SetRingId(i/csi_sectors);
-    v_csi_detector[i]->SetSectorId(i%csi_sectors);
+    v_csi_detector[i]->SetName(map_i2name[i]);
+    v_csi_detector[i]->SetRingId(map_i2ring[i]);
+    v_csi_detector[i]->SetSectorId(map_i2sector[i]);
   }
 
   G4double trap_par[11] = {};
   for(it=v_csi_detector.begin();it!=v_csi_detector.end();it++){
     TrapParamAdjustment(CsIDetector::map_trap_par[(*it)->GetName()], trap_par);
     (*it)->ConstructCsIDetector(trap_par, CsIDetector::map_box_par[(*it)->GetName()]);
-    (*it)->PlaceCsIDetector(CalculateRotation((*it)->GetName(), (*it)->GetSectorId()), CalculatePosition((*it)->GetName(), (*it)->GetSectorId()));
+    // (*it)->PlaceCsIDetector(CalculateRotation((*it)->GetName(), (*it)->GetSectorId()), CalculatePosition((*it)->GetName(), (*it)->GetSectorId()));
+    (*it)->PlaceCsIDetector(CalculatePlacement((*it)->GetName(), (*it)->GetSectorId()));
   }
 }
 
@@ -88,7 +112,7 @@ G4RotationMatrix *CsIArray::CalculateRotation(G4String name, G4int sector_id)
   G4RotationMatrix *rot_matrix = new G4RotationMatrix();
   G4double rot_x_angle = CsIDetector::map_placement_par[name][0] *deg;
   G4double rot_y_angle = 0. *deg;
-  G4double rot_z_angle = -180. *deg - d_phi*sector_id;
+  G4double rot_z_angle = -180. *deg - map_name_to_d_phi[name]*sector_id*deg;
   rot_matrix->rotateZ(rot_z_angle);
   rot_matrix->rotateX(rot_x_angle);
   rot_matrix->print(G4cout);
@@ -99,7 +123,7 @@ G4RotationMatrix *CsIArray::CalculateRotation(G4String name, G4int sector_id)
 //
 G4ThreeVector CsIArray::CalculatePosition(G4String name, G4int sector_id)
 {
-  G4double theta_xy = (90.+CsIDetector::map_placement_par[name][1]) *deg + d_phi*sector_id;
+  G4double theta_xy = (90.+CsIDetector::map_placement_par[name][1]) *deg + map_name_to_d_phi[name]*sector_id*deg;
   G4double r_xy = CsIDetector::map_placement_par[name][2] *mm;
   G4double x = r_xy*std::cos(theta_xy);
   G4double y = r_xy*std::sin(theta_xy);
@@ -116,12 +140,12 @@ G4Transform3D CsIArray::CalculatePlacement(G4String name, G4int sector_id)
   G4RotationMatrix *rot_matrix = new G4RotationMatrix();
   G4double rot_x_angle = CsIDetector::map_placement_par[name][0] *deg;
   G4double rot_y_angle = 0. *deg;
-  G4double rot_z_angle = -180. *deg - d_phi*sector_id;
+  G4double rot_z_angle = -180. *deg - map_name_to_d_phi[name]*sector_id*deg;
   rot_matrix->rotateZ(rot_z_angle);
   rot_matrix->rotateX(rot_x_angle);
   rot_matrix->print(G4cout);
 
-  G4double theta_xy = (90.+CsIDetector::map_placement_par[name][1]) *deg + d_phi*sector_id;
+  G4double theta_xy = (90.+CsIDetector::map_placement_par[name][1]) *deg + map_name_to_d_phi[name]*sector_id*deg;
   G4double r_xy = CsIDetector::map_placement_par[name][2] *mm;
   G4double x = r_xy*std::cos(theta_xy);
   G4double y = r_xy*std::sin(theta_xy);
@@ -129,7 +153,9 @@ G4Transform3D CsIArray::CalculatePlacement(G4String name, G4int sector_id)
   G4ThreeVector pos = G4ThreeVector(x, y, z);
   G4cout << "pos x " << pos.x() << "pos y " << pos.y() << "pos z " << pos.z() << G4endl;
 
-  G4Transform3D transform(*rot_matrix, pos);
+  G4RotationMatrix *rot_matrix_new = new G4RotationMatrix(rot_matrix->inverse());
+
+  G4Transform3D transform(*rot_matrix_new, pos);
 
   return transform;
 }

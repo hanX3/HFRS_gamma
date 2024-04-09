@@ -59,6 +59,9 @@ private:
 
 public:
   static std::map<G4String, G4int> map_name_to_ring_id;
+  static std::map<G4int, G4String> map_ring_id_to_name;
+  static std::map<G4String, G4int> map_name_to_sectors;
+  
   static std::map<G4String, std::array<G4double, 11>> map_trap_par;
   static std::map<G4String, std::array<G4double, 6>> map_box_par;
   static G4double interval_between_crystal;

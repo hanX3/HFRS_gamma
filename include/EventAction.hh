@@ -28,6 +28,7 @@ private:
   G4int hc_id_csi;
   G4int hc_id_labr3;
   G4int hc_id_gagg;
+  G4int hc_id_nai;
 
   G4double threshold_csi;
   G4double energy_resolution_csi;
@@ -35,6 +36,8 @@ private:
   G4double energy_resolution_labr3;
   G4double threshold_gagg;
   G4double energy_resolution_gagg;
+  G4double threshold_nai;
+  G4double energy_resolution_nai;
 
 private:
   EventData event_data;

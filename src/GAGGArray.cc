@@ -8,12 +8,10 @@
 GAGGArray::GAGGArray(G4LogicalVolume *log)
 : exp_hall_log(log)
 {
-  gagg_rings = GAGGRingNumber;
   gagg_numbers = 0;
 
-  for(int i=0;i<gagg_rings;i++){
-   v_gagg_name.push_back(TString::Format("GAGG_%02d",i+3).Data());
-   gagg_numbers += GAGGDetector::map_name_to_sectors[v_gagg_name[i]];
+  for(auto it=GAGGDetector::map_name_to_sectors.begin();it!=GAGGDetector::map_name_to_sectors.end();it++){
+   gagg_numbers += it->second;
   }
   
   //
@@ -51,11 +49,11 @@ void GAGGArray::Construct()
   std::map<G4int, G4int> map_i2sector;
   std::map<G4int, G4String> map_i2name;
   int ii = 0;
-  for(int i=0;i<gagg_rings;i++){
-    for(int j=0;j<GAGGDetector::map_name_to_sectors[v_gagg_name[i]];j++){
-      map_i2ring[ii] = GAGGDetector::map_name_to_ring_id[v_gagg_name[i]];
+  for(auto it=GAGGDetector::map_name_to_ring_id.begin();it!=GAGGDetector::map_name_to_ring_id.end();it++){
+    for(int j=0;j<GAGGDetector::map_name_to_sectors[it->first];j++){
+      map_i2ring[ii] = it->second;
       map_i2sector[ii] = j;
-      map_i2name[ii] = v_gagg_name[i];
+      map_i2name[ii] = it->first;
       ii++;
     }
   }
@@ -95,34 +93,6 @@ G4double GAGGArray::CalculatePhiAngle(G4String name, G4int sector_id)
     G4cout << "can not find " << name << ", please check." << G4endl;
     return 0;
   }
-}
-
-//
-G4RotationMatrix *GAGGArray::CalculateRotation(G4String name, G4int sector_id)
-{
-  G4RotationMatrix *rot_matrix = new G4RotationMatrix();
-
-  G4double rot_x_angle = GAGGDetector::map_placement_par[name][1] *deg;
-  G4double rot_y_angle = 0. *deg;
-  G4double rot_z_angle = CalculatePhiAngle(name, sector_id) *deg;
-  rot_matrix->rotateZ(rot_z_angle);
-  rot_matrix->rotateX(rot_x_angle);
-
-  rot_matrix->print(G4cout);
-
-  return rot_matrix;
-}
-
-//
-G4ThreeVector GAGGArray::CalculatePosition(G4String name, G4int sector_id)
-{
-  G4double x = 0. *mm;
-  G4double y = 0. *mm;
-  G4double z = GAGGDetector::map_placement_par[name][0] *mm;
-  G4ThreeVector pos = (*CalculateRotation(name, sector_id))*G4ThreeVector(x, y, z);
-  G4cout << "pos x " << pos.x() << "pos y " << pos.y() << "pos z " << pos.z() << G4endl;
-
-  return pos;
 }
 
 //

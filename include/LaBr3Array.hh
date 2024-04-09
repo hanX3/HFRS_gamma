@@ -28,8 +28,6 @@ public:
   G4LogicalVolume *exp_hall_log;
 
 private:
-  G4RotationMatrix *CalculateRotation(G4String name, G4int sector_id);
-  G4ThreeVector CalculatePosition(G4String name, G4int sector_id);
   G4Transform3D CalculatePlacement(G4String name, G4int sector_id);
 
 private:
@@ -37,10 +35,8 @@ private:
 
 private:
   G4int labr3_numbers;
-  G4int labr3_rings;
 
-  std::vector<G4String> v_labr3_name;
-  std::map<G4String, G4int> map_name_to_d_phi;
+  std::map<G4String, G4double> map_name_to_d_phi;
 
   std::vector<LaBr3Detector*> v_labr3_detector;
 };

@@ -1,15 +1,15 @@
-#include "CsISD.hh"
+#include "NaISD.hh"
 #include "G4HCofThisEvent.hh"
 #include "G4Step.hh"
 #include "G4ThreeVector.hh"
 #include "G4SDManager.hh"
 #include "G4ios.hh"
 
-#include "CsIDetector.hh"
+#include "NaIDetector.hh"
 #include <cstring>
 
 //
-CsISD::CsISD(const G4String &name, const G4String &hits_collection_name)
+NaISD::NaISD(const G4String &name, const G4String &hits_collection_name)
  : G4VSensitiveDetector(name)
 {
   collectionName.insert(hits_collection_name);
@@ -19,10 +19,10 @@ CsISD::CsISD(const G4String &name, const G4String &hits_collection_name)
 }
 
 //
-void CsISD::Initialize(G4HCofThisEvent *hce)
+void NaISD::Initialize(G4HCofThisEvent *hce)
 {
   // Create hits collection
-  hits_collection = new CsIHitsCollection(SensitiveDetectorName, collectionName[0]);
+  hits_collection = new NaIHitsCollection(SensitiveDetectorName, collectionName[0]);
 
   // Add this collection in hce
   if(hc_id<0){
@@ -30,15 +30,15 @@ void CsISD::Initialize(G4HCofThisEvent *hce)
   }
   hce->AddHitsCollection(hc_id, hits_collection);
 
-  for(auto it=CsIDetector::map_name_to_sectors.begin();it!=CsIDetector::map_name_to_sectors.end();it++){
+  for(auto it=NaIDetector::map_name_to_sectors.begin();it!=NaIDetector::map_name_to_sectors.end();it++){
     for(auto j=0;j<it->second;j++){
-      hits_collection->insert(new CsIHit());
+      hits_collection->insert(new NaIHit());
     }
   }
 }
 
 //
-G4bool CsISD::ProcessHits(G4Step *step, G4TouchableHistory *history)
+G4bool NaISD::ProcessHits(G4Step *step, G4TouchableHistory *history)
 {
   // energy deposit
   G4double e = step->GetTotalEnergyDeposit();
@@ -48,17 +48,15 @@ G4bool CsISD::ProcessHits(G4Step *step, G4TouchableHistory *history)
   auto physical = touchable->GetVolume();
   auto copy_no = physical->GetCopyNo();
   G4String name = physical->GetName();
-  G4String det_name = name.substr(0, 8);
-  G4int ring_id = CsIDetector::map_name_to_ring_id[det_name];
+  G4String det_name = name.substr(0, 6);
+  G4int ring_id = NaIDetector::map_name_to_ring_id[det_name];
   G4int sector_id = copy_no;
 
-  /*
-  G4cout << "-----> physical name " << det_name << G4endl;
-  G4cout << "-----> hc_id " << hc_id << G4endl;
-  G4cout << "-----> in CsISD ProcessHits function copy_no " << copy_no << G4endl;
-  G4cout << "-----> in CsISD ProcessHits function ring_id " << ring_id << G4endl;
-  G4cout << "-----> in CsISD ProcessHits function sector_id " << sector_id << G4endl;
-  */
+  // G4cout << "-----> physical name " << det_name << G4endl;
+  // G4cout << "-----> hc_id " << hc_id << G4endl;
+  // G4cout << "-----> in NaISD ProcessHits function copy_no " << copy_no << G4endl;
+  // G4cout << "-----> in NaISD ProcessHits function ring_id " << ring_id << G4endl;
+  // G4cout << "-----> in NaISD ProcessHits function sector_id " << sector_id << G4endl;
   
   // check if the first touch
   auto hit = (*hits_collection)[copy_no];
@@ -77,7 +75,7 @@ G4bool CsISD::ProcessHits(G4Step *step, G4TouchableHistory *history)
 }
 
 //
-void CsISD::EndOfEvent(G4HCofThisEvent*)
+void NaISD::EndOfEvent(G4HCofThisEvent*)
 {
   if(verboseLevel>1){
      G4int n_of_hits = hits_collection->entries();

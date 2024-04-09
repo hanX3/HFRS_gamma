@@ -16,20 +16,20 @@ constexpr G4double WorldSizeY = 2. *m;
 constexpr G4double WorldSizeZ = 2. *m;
 
 // CsI array
-constexpr G4int CsIRingNumber = 16;
-constexpr G4int CsISectorNumber = 64;
 constexpr G4double CsIEnergyResolution = 0.06;
 constexpr G4double CsIEnergyThreshold = 20. *keV;
 
 // LaBr3 array
-constexpr G4int LaBr3RingNumber = 2;
 constexpr G4double LaBr3EnergyResolution = 0.02;
 constexpr G4double LaBr3EnergyThreshold = 20. *keV;
 
 // GAGG array
-constexpr G4int GAGGRingNumber = 3;
 constexpr G4double GAGGEnergyResolution = 0.04;
 constexpr G4double GAGGEnergyThreshold = 20. *keV;
+
+// NaI array
+constexpr G4double NaIEnergyResolution = 0.04;
+constexpr G4double NaIEnergyThreshold = 20. *keV;
 
 // Point Gun
 constexpr G4double GunPosX = 0. *mm;

@@ -7,8 +7,8 @@
 //
 struct EventData{
   G4long event;
-  G4int ring; // 9,10,...,24
-  G4int sector; // 0,1,...,47
+  G4int ring;
+  G4int sector;
   G4double e;
   G4double x;
   G4double y;

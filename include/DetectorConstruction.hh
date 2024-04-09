@@ -8,6 +8,8 @@
 #include "LaBr3Array.hh"
 #include "GAGGSD.hh"
 #include "GAGGArray.hh"
+#include "NaISD.hh"
+#include "NaIArray.hh"
 
 #include "G4VUserDetectorConstruction.hh"
 #include "tls.hh"
@@ -42,15 +44,16 @@ private:
   CsIArray *csi_array;
   LaBr3Array *labr3_array;
   GAGGArray *gagg_array;
+  NaIArray *nai_array;
 
 private:
   //
   G4LogicalVolume *world_log;
 
   //
-  G4Material *mat_air;
-  G4Material *mat_vaccum;
-  G4Material *mat_al;
+  G4Material *air_mat;
+  G4Material *vaccum_mat;
+  G4Material *al_mat;
 
   G4UserLimits *step_limit;
   G4bool check_overlaps;

@@ -30,6 +30,7 @@ public:
   void UsePointGun();
   void UseFaceGun();
   void SetDirection(G4double x_max, G4double y_max, G4double z_max); // (-pi,pi)
+  void SetDirectionPlusZ();
 
   void SetGammaEnergy(G4double e) { gamma_energy = e; };
 

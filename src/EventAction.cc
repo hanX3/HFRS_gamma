@@ -11,6 +11,7 @@
 #include "CsISD.hh"
 #include "LaBr3SD.hh"
 #include "GAGGSD.hh"
+#include "NaISD.hh"
 #include "RootIO.hh"
 
 #include "TMath.h"
@@ -33,6 +34,10 @@ EventAction::EventAction(PrimaryGeneratorAction *pg, RootIO *rio)
   threshold_gagg = GAGGEnergyThreshold;
   energy_resolution_gagg = GAGGEnergyResolution;
 
+  hc_id_nai = -1;
+  threshold_nai = NaIEnergyThreshold;
+  energy_resolution_nai = NaIEnergyResolution;
+
   event_data.Clear();
 }
 
@@ -47,6 +52,7 @@ void EventAction::BeginOfEventAction(const G4Event*)
   hc_id_csi = sd_manager->GetCollectionID("CsISD/CsIHitCollection");
   hc_id_labr3 = sd_manager->GetCollectionID("LaBr3SD/LaBr3HitCollection");
   hc_id_gagg = sd_manager->GetCollectionID("GAGGSD/GAGGHitCollection");
+  hc_id_nai = sd_manager->GetCollectionID("NaISD/NaIHitCollection");
 }
 
 //
@@ -105,13 +111,30 @@ void EventAction::EndOfEventAction(const G4Event* event)
         root_io->FillEventTree(event_data);
       }
     }
+
+    // nAi array, ring 25,26 sector 0,1,...
+    auto hc_nai = static_cast<NaIHitsCollection*>(hce->GetHC(hc_id_nai));
+    for(auto i=0;i<hc_nai->GetSize();i++){
+      event_data.event = event->GetEventID();
+      event_data.ring = (*hc_nai)[i]->GetRingId();
+      event_data.sector = (*hc_nai)[i]->GetSectorId();
+      event_data.e = (*hc_nai)[i]->GetEdep();
+      event_data.x = (*hc_nai)[i]->GetPos().x();
+      event_data.y = (*hc_nai)[i]->GetPos().y();
+      event_data.z = (*hc_nai)[i]->GetPos().z();
+
+      GausEnergy(energy_resolution_nai);
+      if(IfThresholdTrigger(threshold_nai)){
+        root_io->FillEventTree(event_data);
+      }
+    }
   }
 
   // periodic printing
-  G4int eventID = event->GetEventID();
-  if ( eventID < 10 || eventID % 1000 == 0) {
-    G4cout << ">>> Event: " << eventID  << G4endl;
-  }
+  // G4int eventID = event->GetEventID();
+  // if ( eventID < 10 || eventID % 1000 == 0) {
+  //   G4cout << ">>> Event: " << eventID  << G4endl;
+  // }
 }
 
 //

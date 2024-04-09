@@ -44,7 +44,8 @@ void PrimaryGeneratorAction::GenerateGammaPrimaries(G4Event *evt)
   // G4cout << "Single Gamma Energy " << G4endl;
 
   UsePointGun();
-  SetDirection(1., 1., 1.);
+  // SetDirection(1., 1., 1.);
+  SetDirectionPlusZ();
   SetGammaEnergy(1. *MeV);
 
   // G4cout << "pos x " << gun_pos.x() << " y " << gun_pos.y() << " z " << gun_pos.z() << G4endl;
@@ -115,5 +116,23 @@ void PrimaryGeneratorAction::SetDirection(G4double x_max, G4double y_max, G4doub
   y = y/condizione;
   z = z/condizione;
   
+  gun_dir = G4ThreeVector(x, y, z);
+}
+
+//
+void PrimaryGeneratorAction::SetDirectionPlusZ()
+{
+  G4double theta = G4RandFlat::shoot(0., CLHEP::pi/2.);
+  G4double phi = G4RandFlat::shoot(0., CLHEP::pi*2.);
+
+  G4double x = std::sin(theta)*std::cos(phi);
+  G4double y = std::sin(theta)*std::sin(phi);
+  G4double z = std::sin(phi);
+
+  G4double condizione = std::sqrt(x*x + y*y + z*z);
+  x = x/condizione;
+  y = y/condizione;
+  z = z/condizione;
+
   gun_dir = G4ThreeVector(x, y, z);
 }

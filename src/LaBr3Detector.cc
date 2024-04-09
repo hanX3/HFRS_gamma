@@ -45,7 +45,7 @@ G4LogicalVolume *LaBr3Detector::ConstructLaBr3Detector(const std::array<G4double
 G4VPhysicalVolume *LaBr3Detector::PlaceLaBr3Detector(G4RotationMatrix *rot, const G4ThreeVector &pos)
 {
   TString labr3_phy_name = TString::Format("%s_phy", labr3_name.c_str());
-  labr3_detector_phy = new G4PVPlacement(rot, pos, labr3_detector_log, labr3_phy_name.Data(), exp_hall_log, false, sector_id, check_overlaps);
+  labr3_detector_phy = new G4PVPlacement(new G4RotationMatrix(rot->inverse()), pos, labr3_detector_log, labr3_phy_name.Data(), exp_hall_log, false, sector_id, check_overlaps);
 
   return labr3_detector_phy;
 }
@@ -62,31 +62,37 @@ G4VPhysicalVolume *LaBr3Detector::PlaceLaBr3Detector(const G4Transform3D &transf
 //
 std::map<G4String, G4int> LaBr3Detector::map_name_to_ring_id = {
   {"LaBr3_01", 1},
-  {"LaBr3_02", 2}
+  {"LaBr3_27", 27}
+};
+
+//
+std::map<G4int, G4String> LaBr3Detector::map_ring_id_to_name = {
+  {1, "LaBr3_01"},
+  {27, "LaBr3_27"}
 };
 
 //
 std::map<G4String, G4int> LaBr3Detector::map_name_to_sectors = {
-  {"LaBr3_01", 6},
-  {"LaBr3_02", 12}
+  {"LaBr3_01", 12},
+  {"LaBr3_27", 6}
 };
 
 // 0: diameter
 // 1: length
 std::map<G4String, std::array<G4double, 2>> LaBr3Detector::map_labr3_par = {
   {"LaBr3_01", {50.8, 76.2}},
-  {"LaBr3_02", {50.8, 76.2}}
+  {"LaBr3_27", {50.8, 76.2}}
 };
 
 // 0: distance
 // 1: theta
 std::map<G4String, std::array<G4double, 2>> LaBr3Detector::map_placement_par = {
-  {"LaBr3_01", {700., 4.6}},
-  {"LaBr3_02", {700., 9.0}}
+  {"LaBr3_01", {620., 9.8}},
+  {"LaBr3_27", {400., 65.}}
 };
 
 //
 std::map<G4String, std::array<G4double, 4>> LaBr3Detector::map_color_par = {
   {"LaBr3_01", {0., 0., 1., 0.3}}, // blue
-  {"LaBr3_02", {0., 0., 1., 0.3}} // blue
+  {"LaBr3_27", {0., 0., 1., 0.3}} // blue
 };
