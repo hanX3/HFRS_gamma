@@ -68,11 +68,11 @@ G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
   G4SDManager *sd_manager = G4SDManager::GetSDMpointer();
 
   // CsI Array
-  csi_array = new CsIArray(world_log);
-  csi_array->Construct();
-  CsISD *csi_sd = new CsISD("CsISD", "CsIHitCollection");
-  sd_manager->AddNewDetector(csi_sd);
-  csi_array->MakeSensitive(csi_sd);
+  // csi_array = new CsIArray(world_log);
+  // csi_array->Construct();
+  // CsISD *csi_sd = new CsISD("CsISD", "CsIHitCollection");
+  // sd_manager->AddNewDetector(csi_sd);
+  // csi_array->MakeSensitive(csi_sd);
 
   // Labr3 Array
   labr3_array = new LaBr3Array(world_log);
@@ -89,11 +89,12 @@ G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
   gagg_array->MakeSensitive(gagg_sd);
 
   // NaI Array
-  nai_array = new NaIArray(world_log);
-  nai_array->Construct();
-  NaISD *nai_sd = new NaISD("NaISD", "NaIHitCollection");
-  sd_manager->AddNewDetector(nai_sd);
-  nai_array->MakeSensitive(nai_sd);
+  // nai_array = new NaIArray(world_log);
+  // nai_array->Construct();
+  // NaISD *nai_sd = new NaISD("NaISD", "NaIHitCollection");
+  // sd_manager->AddNewDetector(nai_sd);
+  // nai_array->MakeSensitive(nai_sd);
+  
 
   //
   G4double max_step = 0.4 *um;

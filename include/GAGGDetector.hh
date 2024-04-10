@@ -1,6 +1,8 @@
 #ifndef GAGGDetector_h
 #define GAGGDetector_h 1
 
+#include "Constants.hh"
+
 #include "G4Material.hh"
 #include "G4Element.hh"
 #include "G4NistManager.hh"
@@ -28,9 +30,15 @@ public:
   void SetName(const G4String name) { gagg_name = name; };
   void SetRingId(const G4int id) { ring_id = id; };
   void SetSectorId(const G4int id) { sector_id = id; };
+  // GAGG
   G4LogicalVolume *ConstructGAGGDetector(const std::array<G4double, 3> &gagg_par, G4Material *mat);
   G4VPhysicalVolume *PlaceGAGGDetector(G4RotationMatrix *rot, const G4ThreeVector &pos);
   G4VPhysicalVolume *PlaceGAGGDetector(const G4Transform3D &transfrom_3d);
+
+  // ESR
+  G4LogicalVolume *ConstructESRSurface(const std::array<G4double, 3> &gagg_par, G4Material *mat);
+  G4VPhysicalVolume *PlaceESRSurface(G4RotationMatrix *rot, const G4ThreeVector &pos);
+  G4VPhysicalVolume *PlaceESRSurface(const G4Transform3D &transfrom_3d);
 
 public:
   G4String GetName() { return gagg_name; };
@@ -43,16 +51,23 @@ public:
 public:
   G4LogicalVolume *exp_hall_log;
 
-private:  
+private:
+  G4Box *gagg_detector_solid; // for esr
   G4LogicalVolume *gagg_detector_log;
   G4VPhysicalVolume *gagg_detector_phy;
+
+  G4Box *esr_surface_temp_solid; // for next
+  G4SubtractionSolid *esr_surface_solid;
+  G4LogicalVolume *esr_surface_log;
+  G4VPhysicalVolume *esr_surface_phy;
 
 private:
   G4String gagg_name;
   G4int ring_id; // 3,4,...,8
   G4int sector_id; // 0,1,2,...
 
-  G4Material *gagg_mat;
+private:
+  G4double esr_surface_thickness;
 
 private:
   G4bool check_overlaps;
@@ -64,6 +79,8 @@ public:
   static std::map<G4String, std::array<G4double, 3>> map_gagg_par;
   static std::map<G4String, std::array<G4double, 2>> map_placement_par;
   static std::map<G4String, std::array<G4double, 4>> map_color_par;
+  static std::map<G4String, std::array<G4double, 4>> map_esr_surface_color_par;
+
 };
 
 

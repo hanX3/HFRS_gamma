@@ -32,6 +32,7 @@ private:
 
 private:
   G4Material *labr3_mat;
+  G4Material *al_mat;
 
 private:
   G4int labr3_numbers;

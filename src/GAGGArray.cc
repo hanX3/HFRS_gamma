@@ -27,6 +27,19 @@ GAGGArray::GAGGArray(G4LogicalVolume *log)
   gagg_mat->AddElement(al_element, 2);
   gagg_mat->AddElement(ga_element, 3);
   gagg_mat->AddElement(o_element, 12);
+
+  // 3M ESR
+  // Aluminum (Al): Approximately 2% - 5%
+  // Carbon (C): Approximately 60% - 70%
+  // Hydrogen (H): Approximately 10% - 12%
+  // Oxygen (O): Approximately 15% - 25%
+  // Nitrogen (N): Less than 1%
+  // so neglect nitrogen
+  esr_mat = new G4Material("G4_ESR", 1.5 *g/cm3, 4);
+  esr_mat->AddMaterial(nist_manager->FindOrBuildMaterial("G4_Al"), 0.02);
+  esr_mat->AddMaterial(nist_manager->FindOrBuildMaterial("G4_C"), 0.65);
+  esr_mat->AddMaterial(nist_manager->FindOrBuildMaterial("G4_H"), 0.11);
+  esr_mat->AddMaterial(nist_manager->FindOrBuildMaterial("G4_O"), 0.22);
   
   PrintDetectorDimensionInfo();
 }
@@ -68,6 +81,9 @@ void GAGGArray::Construct()
   for(it=v_gagg_detector.begin();it!=v_gagg_detector.end();it++){
     (*it)->ConstructGAGGDetector(GAGGDetector::map_gagg_par[(*it)->GetName()], gagg_mat);
     (*it)->PlaceGAGGDetector(CalculatePlacement((*it)->GetName(), (*it)->GetSectorId()));
+
+    (*it)->ConstructESRSurface(GAGGDetector::map_gagg_par[(*it)->GetName()], esr_mat);
+    (*it)->PlaceESRSurface(CalculatePlacement((*it)->GetName(), (*it)->GetSectorId()));
   }
 }
 

@@ -16,14 +16,19 @@ constexpr G4double WorldSizeY = 2. *m;
 constexpr G4double WorldSizeZ = 2. *m;
 
 // CsI array
+constexpr G4double CsIESRSurfaceThickness = 68. *um;
+constexpr G4double CsITeflonSurfaceThickness = 130. *um;
+constexpr G4double CsIMylarSurfaceThickness = 15. *um;
 constexpr G4double CsIEnergyResolution = 0.06;
 constexpr G4double CsIEnergyThreshold = 20. *keV;
 
 // LaBr3 array
+constexpr G4double LaBr3AlShellThickness = 0.5 *mm;
 constexpr G4double LaBr3EnergyResolution = 0.02;
 constexpr G4double LaBr3EnergyThreshold = 20. *keV;
 
 // GAGG array
+constexpr G4double GAGGESRSurfaceThickness = 68. *um;
 constexpr G4double GAGGEnergyResolution = 0.04;
 constexpr G4double GAGGEnergyThreshold = 20. *keV;
 

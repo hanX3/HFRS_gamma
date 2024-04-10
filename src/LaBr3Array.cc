@@ -28,6 +28,8 @@ LaBr3Array::LaBr3Array(G4LogicalVolume *log)
   labr3_mat = new G4Material("G4_LABR3", 5.08 *g/cm3, 2);
   labr3_mat->AddElement(la_element, 1);
   labr3_mat->AddElement(br_element, 3);
+
+  al_mat = nist_manager->FindOrBuildMaterial("G4_Al");
   
   PrintDetectorDimensionInfo();
 }
@@ -79,6 +81,9 @@ void LaBr3Array::Construct()
   for(it=v_labr3_detector.begin();it!=v_labr3_detector.end();it++){
     (*it)->ConstructLaBr3Detector(LaBr3Detector::map_labr3_par[(*it)->GetName()], labr3_mat);
     (*it)->PlaceLaBr3Detector(CalculatePlacement((*it)->GetName(), (*it)->GetSectorId()));
+
+    (*it)->ConstructAlShell(LaBr3Detector::map_al_par[(*it)->GetName()], al_mat);
+    (*it)->PlaceAlShell(CalculatePlacement((*it)->GetName(), (*it)->GetSectorId()));
   }
 }
 

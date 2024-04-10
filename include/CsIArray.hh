@@ -34,10 +34,14 @@ private:
   G4Transform3D CalculatePlacement(G4String name, G4int sector_id);
 
 private:
+  G4Material *csi_mat;
+  G4Material *esr_mat;
+  G4Material *teflon_mat;
+  G4Material *mylar_mat;
+
+private:
   G4int csi_numbers;
-
   std::map<G4String, G4double> map_name_to_d_phi;
-
   std::vector<CsIDetector*> v_csi_detector;
 };
 

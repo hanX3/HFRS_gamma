@@ -7,10 +7,9 @@
 CsIDetector::CsIDetector(G4LogicalVolume *log)
 : exp_hall_log(log)
 {
-  G4NistManager* nist_manager = G4NistManager::Instance();
-
-  csi_mat = nist_manager->FindOrBuildMaterial("G4_CESIUM_IODIDE");
-  mylar_mat = nist_manager->FindOrBuildMaterial("G4_MYLAR");
+  esr_surface_thickness = CsIESRSurfaceThickness;
+  teflon_surface_thickness = CsITeflonSurfaceThickness;
+  mylar_surface_thickness = CsIMylarSurfaceThickness;
 
   check_overlaps = true;
 }
@@ -21,33 +20,33 @@ CsIDetector::~CsIDetector()
 
 }
 
-//
-G4LogicalVolume *CsIDetector::ConstructCsIDetector(const double (&trap_par)[11], const std::array<G4double, 6> &box_par)
+// CsI detector
+G4LogicalVolume *CsIDetector::ConstructCsIDetector(const double (&trap_par)[11], const std::array<G4double, 6> &box_par, G4Material *mat)
 {
   std::cout << "start const CsI Detector." << std::endl;
 
-  TString end_cup_solid_name = TString::Format("%s_solid", csi_name.c_str());
-  // std::cout << end_cup_solid_name << std::endl;
+  TString csi_detector_solid_name = TString::Format("%s_solid", csi_name.c_str());
+  // std::cout << csi_detector_solid_name << std::endl;
   
-  G4Trap *end_cup_trap_solid = new G4Trap("end_cup_trap_solid", 
-                                          trap_par[0] *mm, // pDz,
-                                          trap_par[1] *deg, trap_par[2] *deg, // pTheta, pPhi
-                                          trap_par[3] *mm, trap_par[4] *mm, trap_par[5] *mm, // pDy1, pDx1, pDx2
-                                          trap_par[6] *deg, // pAlp1
-                                          trap_par[7] *mm, trap_par[8] *mm, trap_par[9] *mm, // pDy2, pDx3, pDx4,
-                                          trap_par[10] *deg); // pAlp2
+  trap_csi_detector_solid = new G4Trap("end_cup_trap_solid", 
+                                       trap_par[0] *mm, // pDz,
+                                       trap_par[1] *deg, trap_par[2] *deg, // pTheta, pPhi
+                                       trap_par[3] *mm, trap_par[4] *mm, trap_par[5] *mm, // pDy1, pDx1, pDx2
+                                       trap_par[6] *deg, // pAlp1
+                                       trap_par[7] *mm, trap_par[8] *mm, trap_par[9] *mm, // pDy2, pDx3, pDx4,
+                                       trap_par[10] *deg); // pAlp2
 
-  G4Box *cut= new G4Box("cut_solid", 40.0 *mm, 40.0 *mm, 40.0 *mm);
+  G4Box *box_csi_detector_solid = new G4Box("cut_solid", 40.0 *mm, 40.0 *mm, 40.0 *mm);
   G4RotationMatrix *rotation_left_end_cup = new G4RotationMatrix();
   rotation_left_end_cup->rotateY(60.0 *deg);
   G4RotationMatrix *rotation_right_end_cup = new G4RotationMatrix();
   rotation_right_end_cup->rotateY(-62.40*deg);
 
-  G4SubtractionSolid *end_cup_temp_solid = new G4SubtractionSolid("end_cup_temp_solid", end_cup_trap_solid, cut, rotation_left_end_cup, G4ThreeVector(box_par[0]*mm, box_par[1]*mm, box_par[2]*mm));
-  G4SubtractionSolid* end_cup_solid = new G4SubtractionSolid(end_cup_solid_name.Data(), end_cup_temp_solid, cut, rotation_right_end_cup, G4ThreeVector(box_par[3]*mm, box_par[4]*mm, box_par[5]*mm));
+  G4SubtractionSolid *csi_detector_temp_solid = new G4SubtractionSolid("csi_detector_temp_solid", trap_csi_detector_solid, box_csi_detector_solid, rotation_left_end_cup, G4ThreeVector(box_par[0]*mm, box_par[1]*mm, box_par[2]*mm));
+  csi_detector_solid = new G4SubtractionSolid(csi_detector_solid_name.Data(), csi_detector_temp_solid, box_csi_detector_solid, rotation_right_end_cup, G4ThreeVector(box_par[3]*mm, box_par[4]*mm, box_par[5]*mm));
 
-  TString end_cup_log_name = TString::Format("%s_log", csi_name.c_str());
-  csi_detector_log = new G4LogicalVolume(end_cup_solid, csi_mat, end_cup_log_name.Data());
+  TString csi_detector_log_name = TString::Format("%s_log", csi_name.c_str());
+  csi_detector_log = new G4LogicalVolume(csi_detector_solid, mat, csi_detector_log_name.Data());
   
   // color
   G4VisAttributes *vis_att = new G4VisAttributes(G4Colour(CsIDetector::map_color_par[csi_name][0], CsIDetector::map_color_par[csi_name][1], CsIDetector::map_color_par[csi_name][2], CsIDetector::map_color_par[csi_name][3]));
@@ -73,6 +72,244 @@ G4VPhysicalVolume *CsIDetector::PlaceCsIDetector(const G4Transform3D &transfrom_
   csi_detector_phy = new G4PVPlacement(transfrom_3d, csi_detector_log, end_cup_phy_name.Data(), exp_hall_log, false, sector_id, check_overlaps);
 
   return csi_detector_phy;
+}
+
+// ESR
+G4LogicalVolume *CsIDetector::ConstructESRSurface(const std::array<G4double, 6> &box_par, G4Material *mat)
+{
+  std::cout << "start const ESR Surface." << std::endl;
+
+  //
+  TString esr_surface_solid_name = TString::Format("%s_esr_surface_solid", csi_name.c_str());
+  G4ThreeVector vertice_of_esr_surface[8];
+  GetVertices(trap_csi_detector_solid, esr_surface_thickness, vertice_of_esr_surface);
+  trap_esr_surface_solid = new G4Trap("trap_esr_surface_solid", vertice_of_esr_surface);
+
+  G4Box *box_esr_surface_solid = new G4Box("cut_solid", 40.0*mm-esr_surface_thickness, 40.0*mm-esr_surface_thickness, 40.0*mm-esr_surface_thickness);
+  G4RotationMatrix *rotation_left = new G4RotationMatrix();
+  rotation_left->rotateY(60.0 *deg);
+  G4RotationMatrix *rotation_right = new G4RotationMatrix();
+  rotation_right->rotateY(-62.40*deg);
+
+  G4SubtractionSolid *esr_surface_temp_solid1 = new G4SubtractionSolid("esr_surface_temp_solid1", trap_esr_surface_solid, box_esr_surface_solid, rotation_left, G4ThreeVector(box_par[0]*mm, box_par[1]*mm, box_par[2]*mm));
+  esr_surface_temp_solid = new G4SubtractionSolid("esr_surface_temp_solid", esr_surface_temp_solid1, box_esr_surface_solid, rotation_right, G4ThreeVector(box_par[3]*mm, box_par[4]*mm, box_par[5]*mm));
+  esr_surface_solid = new G4SubtractionSolid(esr_surface_solid_name.Data(), esr_surface_temp_solid, csi_detector_solid, nullptr, G4ThreeVector(0.,0.,0.));
+
+  TString esr_surface_log_name = TString::Format("%s_esr_surface_log", csi_name.c_str());
+  esr_surface_log = new G4LogicalVolume(esr_surface_solid, mat, esr_surface_log_name.Data());
+
+  // check thickness of esr surface
+  // for(int i=0;i<1000;i++){
+  //   G4ThreeVector point_csi_detector = trap_csi_detector_solid->GetPointOnSurface();
+  //   G4cout << "point_csi_detector x " << point_csi_detector.x() << 
+  //            " point_csi_detector y " << point_csi_detector.y() << 
+  //            " point_csi_detector z " << point_csi_detector.z() << G4endl;
+  //   G4ThreeVector normal_esr_surface = trap_esr_surface_solid->SurfaceNormal(point_csi_detector);
+    
+  //   G4double dis = trap_esr_surface_solid->DistanceToOut(point_csi_detector, normal_esr_surface);
+  //   G4cout << "distance " << dis/um << G4endl;
+  // }
+
+  // color
+  G4VisAttributes *vis_att = new G4VisAttributes(G4Colour(CsIDetector::map_esr_surface_color_par[csi_name][0], 
+                                                          CsIDetector::map_esr_surface_color_par[csi_name][1], 
+                                                          CsIDetector::map_esr_surface_color_par[csi_name][2], 
+                                                          CsIDetector::map_esr_surface_color_par[csi_name][3]));
+  vis_att->SetForceSolid(true);
+  esr_surface_log->SetVisAttributes(vis_att);
+
+  return esr_surface_log;
+}
+
+//
+G4VPhysicalVolume *CsIDetector::PlaceESRSurface(G4RotationMatrix *rot, const G4ThreeVector &pos)
+{
+  TString esr_surface_phy_name = TString::Format("%s_esr_surface_phy", csi_name.c_str());
+  esr_surface_phy = new G4PVPlacement(rot, pos, esr_surface_log, esr_surface_phy_name.Data(), exp_hall_log, false, sector_id, check_overlaps);
+
+  return esr_surface_phy;
+}
+
+//
+G4VPhysicalVolume *CsIDetector::PlaceESRSurface(const G4Transform3D &transfrom_3d)
+{
+  TString esr_surface_phy_name = TString::Format("%s_esr_surface_phy", csi_name.c_str());
+  esr_surface_phy = new G4PVPlacement(transfrom_3d, esr_surface_log, esr_surface_phy_name.Data(), exp_hall_log, false, sector_id, check_overlaps);
+
+  return esr_surface_phy;
+}
+
+// Teflon
+G4LogicalVolume *CsIDetector::ConstructTeflonSurface(const std::array<G4double, 6> &box_par, G4Material *mat)
+{
+  std::cout << "start const Teflon Surface." << std::endl;
+
+  //
+  TString teflon_surface_solid_name = TString::Format("%s_teflon_surface_solid", csi_name.c_str());
+  G4ThreeVector vertice_of_teflon_surface[8];
+  GetVertices(trap_esr_surface_solid, teflon_surface_thickness, vertice_of_teflon_surface);
+  trap_teflon_surface_solid = new G4Trap("trap_teflon_surface_solid", vertice_of_teflon_surface);
+
+  G4Box *box_teflon_surface_solid = new G4Box("cut_solid", 40.0*mm-esr_surface_thickness-teflon_surface_thickness, 40.0*mm-esr_surface_thickness-teflon_surface_thickness, 40.0*mm-esr_surface_thickness-teflon_surface_thickness);
+  G4RotationMatrix *rotation_left = new G4RotationMatrix();
+  rotation_left->rotateY(60.0 *deg);
+  G4RotationMatrix *rotation_right = new G4RotationMatrix();
+  rotation_right->rotateY(-62.40*deg);
+
+  G4SubtractionSolid *teflon_surface_temp_solid1 = new G4SubtractionSolid("teflon_surface_temp_solid1", trap_teflon_surface_solid, box_teflon_surface_solid, rotation_left, G4ThreeVector(box_par[0]*mm, box_par[1]*mm, box_par[2]*mm));
+  teflon_surface_temp_solid = new G4SubtractionSolid("teflon_surface_temp_solid", teflon_surface_temp_solid1, box_teflon_surface_solid, rotation_right, G4ThreeVector(box_par[3]*mm, box_par[4]*mm, box_par[5]*mm));
+  teflon_surface_solid = new G4SubtractionSolid(teflon_surface_solid_name.Data(), teflon_surface_temp_solid, esr_surface_temp_solid, nullptr, G4ThreeVector(0.,0.,0.));
+
+  TString teflon_surface_log_name = TString::Format("%s_teflon_surface_log", csi_name.c_str());
+  teflon_surface_log = new G4LogicalVolume(teflon_surface_solid, mat, teflon_surface_log_name.Data());
+
+  // check thickness of teflon surface
+  // for(int i=0;i<1000;i++){
+  //   G4ThreeVector point_csi_detector = trap_csi_detector_solid->GetPointOnSurface();
+  //   G4cout << "point_csi_detector x " << point_csi_detector.x() << 
+  //            " point_csi_detector y " << point_csi_detector.y() << 
+  //            " point_csi_detector z " << point_csi_detector.z() << G4endl;
+  //   G4ThreeVector normal_teflon_surface = trap_teflon_surface_solid->SurfaceNormal(point_csi_detector);
+    
+  //   G4double dis = trap_teflon_surface_solid->DistanceToOut(point_csi_detector, normal_teflon_surface);
+  //   G4cout << "distance " << dis/um << G4endl;
+  // }
+
+  // color
+  G4VisAttributes *vis_att = new G4VisAttributes(G4Colour(CsIDetector::map_teflon_surface_color_par[csi_name][0], 
+                                                          CsIDetector::map_teflon_surface_color_par[csi_name][1], 
+                                                          CsIDetector::map_teflon_surface_color_par[csi_name][2], 
+                                                          CsIDetector::map_teflon_surface_color_par[csi_name][3]));
+  vis_att->SetForceSolid(true);
+  teflon_surface_log->SetVisAttributes(vis_att);
+
+  return teflon_surface_log;
+}
+
+//
+G4VPhysicalVolume *CsIDetector::PlaceTeflonSurface(G4RotationMatrix *rot, const G4ThreeVector &pos)
+{
+  TString teflon_surface_phy_name = TString::Format("%s_teflon_surface_phy", csi_name.c_str());
+  teflon_surface_phy = new G4PVPlacement(rot, pos, teflon_surface_log, teflon_surface_phy_name.Data(), exp_hall_log, false, sector_id, check_overlaps);
+
+  return teflon_surface_phy;
+}
+
+//
+G4VPhysicalVolume *CsIDetector::PlaceTeflonSurface(const G4Transform3D &transfrom_3d)
+{
+  TString teflon_surface_phy_name = TString::Format("%s_teflon_surface_phy", csi_name.c_str());
+  teflon_surface_phy = new G4PVPlacement(transfrom_3d, teflon_surface_log, teflon_surface_phy_name.Data(), exp_hall_log, false, sector_id, check_overlaps);
+
+  return teflon_surface_phy;
+}
+
+// Mylar
+G4LogicalVolume *CsIDetector::ConstructMylarSurface(const std::array<G4double, 6> &box_par, G4Material *mat)
+{
+  std::cout << "start const Mylar Surface." << std::endl;
+
+  //
+  TString mylar_surface_solid_name = TString::Format("%s_mylar_surface_solid", csi_name.c_str());
+  G4ThreeVector vertice_of_mylar_surface[8];
+  GetVertices(trap_teflon_surface_solid, mylar_surface_thickness, vertice_of_mylar_surface);
+  trap_mylar_surface_solid = new G4Trap("trap_mylar_surface_solid", vertice_of_mylar_surface);
+
+  G4Box *box_mylar_surface_solid = new G4Box("cut_solid", 40.0*mm-esr_surface_thickness-teflon_surface_thickness-mylar_surface_thickness, 40.0*mm-esr_surface_thickness-teflon_surface_thickness-mylar_surface_thickness, 40.0*mm-esr_surface_thickness-teflon_surface_thickness-mylar_surface_thickness);
+  G4RotationMatrix *rotation_left = new G4RotationMatrix();
+  rotation_left->rotateY(60.0 *deg);
+  G4RotationMatrix *rotation_right = new G4RotationMatrix();
+  rotation_right->rotateY(-62.40*deg);
+
+  G4SubtractionSolid *mylar_surface_temp_solid1 = new G4SubtractionSolid("mylar_surface_temp_solid1", trap_mylar_surface_solid, box_mylar_surface_solid, rotation_left, G4ThreeVector(box_par[0]*mm, box_par[1]*mm, box_par[2]*mm));
+  mylar_surface_temp_solid = new G4SubtractionSolid("mylar_surface_temp_solid", mylar_surface_temp_solid1, box_mylar_surface_solid, rotation_right, G4ThreeVector(box_par[3]*mm, box_par[4]*mm, box_par[5]*mm));
+  mylar_surface_solid = new G4SubtractionSolid(mylar_surface_solid_name.Data(), mylar_surface_temp_solid, teflon_surface_temp_solid, nullptr, G4ThreeVector(0.,0.,0.));
+
+  TString mylar_surface_log_name = TString::Format("%s_mylar_surface_log", csi_name.c_str());
+  mylar_surface_log = new G4LogicalVolume(mylar_surface_solid, mat, mylar_surface_log_name.Data());
+
+  // check thickness of mylar surface
+  // for(int i=0;i<1000;i++){
+  //   G4ThreeVector point_csi_detector = trap_csi_detector_solid->GetPointOnSurface();
+  //   G4cout << "point_csi_detector x " << point_csi_detector.x() << 
+  //            " point_csi_detector y " << point_csi_detector.y() << 
+  //            " point_csi_detector z " << point_csi_detector.z() << G4endl;
+  //   G4ThreeVector normal_mylar_surface = trap_mylar_surface_solid->SurfaceNormal(point_csi_detector);
+    
+  //   G4double dis = trap_mylar_surface_solid->DistanceToOut(point_csi_detector, normal_mylar_surface);
+  //   G4cout << "distance " << dis/um << G4endl;
+  // }
+
+  // color
+  G4VisAttributes *vis_att = new G4VisAttributes(G4Colour(CsIDetector::map_mylar_surface_color_par[csi_name][0], 
+                                                          CsIDetector::map_mylar_surface_color_par[csi_name][1], 
+                                                          CsIDetector::map_mylar_surface_color_par[csi_name][2], 
+                                                          CsIDetector::map_mylar_surface_color_par[csi_name][3]));
+  vis_att->SetForceSolid(true);
+  mylar_surface_log->SetVisAttributes(vis_att);
+
+  return mylar_surface_log;
+}
+
+//
+G4VPhysicalVolume *CsIDetector::PlaceMylarSurface(G4RotationMatrix *rot, const G4ThreeVector &pos)
+{
+  TString mylar_surface_phy_name = TString::Format("%s_mylar_surface_phy", csi_name.c_str());
+  mylar_surface_phy = new G4PVPlacement(rot, pos, mylar_surface_log, mylar_surface_phy_name.Data(), exp_hall_log, false, sector_id, check_overlaps);
+
+  return mylar_surface_phy;
+}
+
+//
+G4VPhysicalVolume *CsIDetector::PlaceMylarSurface(const G4Transform3D &transfrom_3d)
+{
+  TString mylar_surface_phy_name = TString::Format("%s_mylar_surface_phy", csi_name.c_str());
+  mylar_surface_phy = new G4PVPlacement(transfrom_3d, mylar_surface_log, mylar_surface_phy_name.Data(), exp_hall_log, false, sector_id, check_overlaps);
+
+  return mylar_surface_phy;
+}
+
+//
+void CsIDetector::GetVertices(G4Trap *trap,  G4double offset, G4ThreeVector pt[8])
+{
+  double a[4], b[4], c[4], d[4];
+  for(int i=0;i<4;i++){
+    a[i] = trap->GetSidePlane(i).a;
+    b[i] = trap->GetSidePlane(i).b;
+    c[i] = trap->GetSidePlane(i).c;
+    d[i] = trap->GetSidePlane(i).d;
+
+    G4cout << a[i] << " " << b[i] << " " << c[i] << " " << d[i] << G4endl;
+  }
+
+  // plane 0 and 1 for y
+  double offset_y = std::abs(d[0])+std::abs(d[1]);
+  double k_y = (offset_y+offset*2)/offset_y;
+
+  // plane 2 and 3 for x
+  double offset_x = std::abs(d[2])+std::abs(d[3]);
+  double k_x = (offset_x+offset*2)/offset_x;
+
+  for(int i=0;i<4;i++){
+    if(i==0 || i==1) d[i] *= k_y;
+    if(i==2 || i==3) d[i] *= k_x;
+  }
+
+  G4cout << G4endl;
+
+  for(int i=0;i<8;++i){
+    G4int iy = (i==0 || i==1 || i==4 || i==5) ? 0 : 1;
+    G4int ix = (i==0 || i==2 || i==4 || i==6) ? 2 : 3;
+    G4double z = (i<4) ? -trap->GetZHalfLength()-offset : trap->GetZHalfLength()+offset;
+    G4double y = -(c[iy]*z + d[iy])/b[iy];
+    G4double x = -(b[ix]*y + c[ix]*z + d[ix])/a[ix];
+    
+    pt[i].set(x,y,z);
+  }
+
+  for(int i=0;i<8;i++){
+    G4cout << " x " << pt[i].x() << "  y " << pt[i].y() << "  z " << pt[i].z() << G4endl;
+  }
 }
 
 //
@@ -233,4 +470,70 @@ std::map<G4String, std::array<G4double, 4>> CsIDetector::map_color_par = {
   {"EndCup22", {0., 1.0, 0., 0.3}},
   {"EndCup23", {0., 1.0, 0., 0.3}},
   {"EndCup24", {0., 1.0, 0., 0.3}}
+};
+
+//
+std::map<G4String, std::array<G4double, 4>> CsIDetector::map_esr_surface_color_par = {
+  {"EndCup09", {0.8, 0.1, 0.5, 0.3}},
+  {"EndCup10", {0.8, 0.1, 0.5, 0.3}},
+  {"EndCup11", {0.8, 0.1, 0.5, 0.3}},
+  {"EndCup12", {0.8, 0.1, 0.5, 0.3}},
+  {"EndCup13", {0.8, 0.1, 0.5, 0.3}},
+  
+  {"EndCup14", {0.8, 0.2, 0.5, 0.3}},
+  {"EndCup15", {0.8, 0.2, 0.5, 0.3}},
+  {"EndCup16", {0.8, 0.2, 0.5, 0.3}},
+  {"EndCup17", {0.8, 0.2, 0.5, 0.3}},
+  {"EndCup18", {0.8, 0.2, 0.5, 0.3}},
+  
+  {"EndCup19", {0.8, 0.3, 0.5, 0.3}},
+  {"EndCup20", {0.8, 0.3, 0.5, 0.3}},
+  {"EndCup21", {0.8, 0.3, 0.5, 0.3}},
+  {"EndCup22", {0.8, 0.3, 0.5, 0.3}},
+  {"EndCup23", {0.8, 0.3, 0.5, 0.3}},
+  {"EndCup24", {0.8, 0.3, 0.5, 0.3}}
+};
+
+//
+std::map<G4String, std::array<G4double, 4>> CsIDetector::map_teflon_surface_color_par = {
+  {"EndCup09", {0.2, 0.1, 0.5, 0.3}},
+  {"EndCup10", {0.2, 0.1, 0.5, 0.3}},
+  {"EndCup11", {0.2, 0.1, 0.5, 0.3}},
+  {"EndCup12", {0.2, 0.1, 0.5, 0.3}},
+  {"EndCup13", {0.2, 0.1, 0.5, 0.3}},
+  
+  {"EndCup14", {0.3, 0.2, 0.2, 0.3}},
+  {"EndCup15", {0.3, 0.2, 0.2, 0.3}},
+  {"EndCup16", {0.3, 0.2, 0.2, 0.3}},
+  {"EndCup17", {0.3, 0.2, 0.2, 0.3}},
+  {"EndCup18", {0.3, 0.2, 0.2, 0.3}},
+  
+  {"EndCup19", {0.3, 0.4, 0.7, 0.3}},
+  {"EndCup20", {0.3, 0.4, 0.7, 0.3}},
+  {"EndCup21", {0.3, 0.4, 0.7, 0.3}},
+  {"EndCup22", {0.3, 0.4, 0.7, 0.3}},
+  {"EndCup23", {0.3, 0.4, 0.7, 0.3}},
+  {"EndCup24", {0.3, 0.4, 0.7, 0.3}}
+};
+
+//
+std::map<G4String, std::array<G4double, 4>> CsIDetector::map_mylar_surface_color_par = {
+  {"EndCup09", {0.2, 0.6, 0.5, 0.3}},
+  {"EndCup10", {0.2, 0.6, 0.5, 0.3}},
+  {"EndCup11", {0.2, 0.6, 0.5, 0.3}},
+  {"EndCup12", {0.2, 0.6, 0.5, 0.3}},
+  {"EndCup13", {0.2, 0.6, 0.5, 0.3}},
+  
+  {"EndCup14", {0.2, 0.7, 0.7, 0.3}},
+  {"EndCup15", {0.2, 0.7, 0.7, 0.3}},
+  {"EndCup16", {0.2, 0.7, 0.7, 0.3}},
+  {"EndCup17", {0.2, 0.7, 0.7, 0.3}},
+  {"EndCup18", {0.2, 0.7, 0.7, 0.3}},
+  
+  {"EndCup19", {0.5, 0.3, 0.7, 0.3}},
+  {"EndCup20", {0.5, 0.3, 0.7, 0.3}},
+  {"EndCup21", {0.5, 0.3, 0.7, 0.3}},
+  {"EndCup22", {0.5, 0.3, 0.7, 0.3}},
+  {"EndCup23", {0.5, 0.3, 0.7, 0.3}},
+  {"EndCup24", {0.5, 0.3, 0.7, 0.3}}
 };

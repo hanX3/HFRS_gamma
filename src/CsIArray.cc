@@ -16,6 +16,26 @@ CsIArray::CsIArray(G4LogicalVolume *log)
   }
   //
   PrintDetectorDimensionInfo();
+
+  //
+  G4NistManager *nist_manager = G4NistManager::Instance();
+  csi_mat = nist_manager->FindOrBuildMaterial("G4_CESIUM_IODIDE");
+
+  // 3M ESR
+  // Aluminum (Al): Approximately 2% - 5%
+  // Carbon (C): Approximately 60% - 70%
+  // Hydrogen (H): Approximately 10% - 12%
+  // Oxygen (O): Approximately 15% - 25%
+  // Nitrogen (N): Less than 1%
+  // so neglect nitrogen
+  esr_mat = new G4Material("G4_ESR", 1.5 *g/cm3, 4);
+  esr_mat->AddMaterial(nist_manager->FindOrBuildMaterial("G4_Al"), 0.02);
+  esr_mat->AddMaterial(nist_manager->FindOrBuildMaterial("G4_C"), 0.65);
+  esr_mat->AddMaterial(nist_manager->FindOrBuildMaterial("G4_H"), 0.11);
+  esr_mat->AddMaterial(nist_manager->FindOrBuildMaterial("G4_O"), 0.22);
+
+  teflon_mat = nist_manager->FindOrBuildMaterial("G4_TEFLON");
+  mylar_mat = nist_manager->FindOrBuildMaterial("G4_MYLAR");
 }
 
 //
@@ -65,9 +85,17 @@ void CsIArray::Construct()
   G4double trap_par[11] = {};
   for(it=v_csi_detector.begin();it!=v_csi_detector.end();it++){
     TrapParamAdjustment(CsIDetector::map_trap_par[(*it)->GetName()], trap_par);
-    (*it)->ConstructCsIDetector(trap_par, CsIDetector::map_box_par[(*it)->GetName()]);
-    // (*it)->PlaceCsIDetector(CalculateRotation((*it)->GetName(), (*it)->GetSectorId()), CalculatePosition((*it)->GetName(), (*it)->GetSectorId()));
+    (*it)->ConstructCsIDetector(trap_par, CsIDetector::map_box_par[(*it)->GetName()], csi_mat);
     (*it)->PlaceCsIDetector(CalculatePlacement((*it)->GetName(), (*it)->GetSectorId()));
+
+    (*it)->ConstructESRSurface(CsIDetector::map_box_par[(*it)->GetName()], esr_mat);
+    (*it)->PlaceESRSurface(CalculatePlacement((*it)->GetName(), (*it)->GetSectorId()));
+
+    (*it)->ConstructTeflonSurface(CsIDetector::map_box_par[(*it)->GetName()], teflon_mat);
+    (*it)->PlaceTeflonSurface(CalculatePlacement((*it)->GetName(), (*it)->GetSectorId()));
+
+    (*it)->ConstructMylarSurface(CsIDetector::map_box_par[(*it)->GetName()], mylar_mat);
+    (*it)->PlaceMylarSurface(CalculatePlacement((*it)->GetName(), (*it)->GetSectorId()));
   }
 }
 
@@ -88,7 +116,7 @@ void CsIArray::TrapParamAdjustment(const std::array<G4double, 11> &in, double (&
   double dy2 = in[7], dx3 = in[8], dx4 = in[9], alp2 = in[10];
 
   // adjust alpha
-  //alp1 = alp2 = (alp1 + alp2)/2.;
+  // alp1 = alp2 = (alp1 + alp2)/2.;
   alp1 = alp2 = std::atan((std::tan(alp1) + std::tan(alp2))/2.);
 
   // adjust dx
@@ -98,7 +126,7 @@ void CsIArray::TrapParamAdjustment(const std::array<G4double, 11> &in, double (&
   double l1 = (dx1 + dx2)/2.;
   double l2 = (dx3 + dx4)/2.;
   dx1 = l1 + k*dy1; dx2 = l1 - k*dy1; 
-  dx3 = l2 + k*dy2; dx4 = l2 - k*dy2; 
+  dx3 = l2 + k*dy2; dx4 = l2 - k*dy2;
 
   // set output
   out[0] = in[0]; out[1] = in[1]; out[2] = in[2];

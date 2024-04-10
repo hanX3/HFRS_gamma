@@ -33,6 +33,7 @@ private:
 
 private:
   G4Material *gagg_mat;
+  G4Material *esr_mat;
 
 private:
   G4int gagg_numbers;
